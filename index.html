@@ -191,6 +191,11 @@
       display: flex;
     }
 
+    .fly-wrapper {
+      pointer-events: none;
+      will-change: transform;
+    }
+
     /* ── Unfolded Trifold ───────────────────────────────────────────── */
     /*
      * The unfolded brochure uses perspective + 3D transforms.
@@ -763,8 +768,8 @@
       face.append(img, body);
       wrapper.append(face);
 
-      wrapper.addEventListener('click', () => openBrochure(project));
-      wrapper.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openBrochure(project); });
+      wrapper.addEventListener('click', () => openBrochure(project, wrapper));
+      wrapper.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openBrochure(project, wrapper); });
 
       return wrapper;
     }
@@ -965,29 +970,63 @@
     const closeHint  = document.getElementById('close-hint');
     let openProject  = null;
     let animating    = false;
+    let activeCard   = null;
 
-    function openBrochure(project) {
+    function openBrochure(project, cardWrapper) {
       if (animating) return;
       animating = true;
       openProject = project;
+      activeCard = cardWrapper;
+
+      // Get card position before hiding
+      const cardRect = cardWrapper.getBoundingClientRect();
+      const cardCenterX = cardRect.left + cardRect.width / 2;
+      const cardCenterY = cardRect.top + cardRect.height / 2;
+      const viewCenterX = window.innerWidth / 2;
+      const viewCenterY = window.innerHeight / 2;
+      const dx = cardCenterX - viewCenterX;
+      const dy = cardCenterY - viewCenterY;
+
+      // Account for responsive scene scale on small viewports
+      const isSmall = window.matchMedia('(max-width: 760px)').matches;
+      const sceneScale = isSmall ? 0.85 : 1;
+      const panelW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--panel-w'));
+      const scale = cardRect.width / (panelW * sceneScale);
+
+      // Hide original card (preserve layout space in grid)
+      cardWrapper.style.visibility = 'hidden';
 
       // Clear old content
       overlay.innerHTML = '';
 
       const scene    = buildBrochure(project);
       const brochure = scene.querySelector('.brochure');
-      overlay.append(scene);
 
-      // Show overlay (display:flex)
+      // Wrap scene in fly-wrapper for positioning animation
+      const flyWrapper = document.createElement('div');
+      flyWrapper.className = 'fly-wrapper';
+      flyWrapper.append(scene);
+      overlay.append(flyWrapper);
+
+      // Position at card location (no transition yet)
+      flyWrapper.style.transition = 'none';
+      flyWrapper.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+
+      // Show overlay
       overlay.classList.add('active');
       closeHint.classList.add('visible');
 
-      // Trigger 3D unfold on next frame
+      // Animate to center, then unfold
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          brochure.classList.add('open');
-          // Longest panel animation is 0.55s + 0.18s delay ≈ 730 ms
-          setTimeout(() => { animating = false; }, 800);
+          flyWrapper.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+          flyWrapper.style.transform = 'none';
+
+          // After fly-in completes, unfold
+          setTimeout(() => {
+            brochure.classList.add('open');
+            setTimeout(() => { animating = false; }, 800);
+          }, 500);
         });
       });
     }
@@ -999,11 +1038,34 @@
       const brochure = document.getElementById('open-brochure');
       if (!brochure) { finishClose(); return; }
 
+      // Fold the brochure
       brochure.classList.remove('open');
 
-      // Wait for the fold-back animation to finish
+      // After fold animation, fly back to card position
       setTimeout(() => {
-        finishClose();
+        const flyWrapper = overlay.querySelector('.fly-wrapper');
+        if (flyWrapper && activeCard) {
+          const cardRect = activeCard.getBoundingClientRect();
+          const cardCenterX = cardRect.left + cardRect.width / 2;
+          const cardCenterY = cardRect.top + cardRect.height / 2;
+          const viewCenterX = window.innerWidth / 2;
+          const viewCenterY = window.innerHeight / 2;
+          const dx = cardCenterX - viewCenterX;
+          const dy = cardCenterY - viewCenterY;
+
+          const isSmall = window.matchMedia('(max-width: 760px)').matches;
+          const sceneScale = isSmall ? 0.85 : 1;
+          const panelW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--panel-w'));
+          const scale = cardRect.width / (panelW * sceneScale);
+
+          flyWrapper.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+          flyWrapper.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+
+          // After fly-back completes, finish
+          setTimeout(() => { finishClose(); }, 500);
+        } else {
+          finishClose();
+        }
       }, 700);
     }
 
@@ -1011,6 +1073,10 @@
       overlay.classList.remove('active');
       closeHint.classList.remove('visible');
       overlay.innerHTML = '';
+      if (activeCard) {
+        activeCard.style.visibility = '';
+        activeCard = null;
+      }
       openProject = null;
       animating = false;
     }
