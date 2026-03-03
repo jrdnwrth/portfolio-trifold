@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio — Jordan Wraith</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ───────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --accent:    #6c63ff;
+      --accent2:   #ff6584;
+      --text:      #e8eaf0;
+      --muted:     #8b909e;
+      --border:    #2a2d3a;
+      --card-w:    260px;
+      --card-h:    360px;
+      --panel-w:   320px;
+      --panel-h:   480px;
+      --fold-ease: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Header ────────────────────────────────────────────────────── */
+    .site-header {
+      text-align: center;
+      padding: 64px 24px 48px;
+      position: relative;
+    }
+
+    .site-header::after {
+      content: '';
+      display: block;
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 2px;
+      margin: 20px auto 0;
+    }
+
+    .site-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #fff 30%, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .site-header p {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 300;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Portfolio Grid ─────────────────────────────────────────────── */
+    .portfolio-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 40px;
+      padding: 0 40px 80px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* ── Trifold Card (folded state wrapper) ────────────────────────── */
+    .trifold-wrapper {
+      width: var(--card-w);
+      height: var(--card-h);
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.25s ease, filter 0.25s ease;
+      /* perspective for the closed card's own 3d depth shadow */
+    }
+
+    .trifold-wrapper:hover {
+      transform: translateY(-8px) scale(1.02);
+      filter: drop-shadow(0 24px 40px rgba(108,99,255,0.35));
+    }
+
+    /* ── The visible closed card face ──────────────────────────────── */
+    .trifold-closed-face {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      background: var(--surface);
+      box-shadow:
+        0 2px 4px rgba(0,0,0,0.3),
+        0 8px 24px rgba(0,0,0,0.4),
+        inset 2px 0 0 rgba(255,255,255,0.04);
+    }
+
+    /* Left-fold crease line on the closed card */
+    .trifold-closed-face::before {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 33.33%;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.08) 20%, rgba(255,255,255,0.08) 80%, transparent);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .trifold-closed-face::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 66.66%;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.08) 20%, rgba(255,255,255,0.08) 80%, transparent);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .cover-image {
+      width: 100%;
+      height: 65%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .cover-body {
+      padding: 16px;
+    }
+
+    .cover-category {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(108,99,255,0.12);
+      border: 1px solid rgba(108,99,255,0.25);
+      border-radius: 4px;
+      padding: 2px 8px;
+      margin-bottom: 8px;
+    }
+
+    .cover-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      line-height: 1.3;
+      color: #fff;
+    }
+
+    .cover-tagline {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── Overlay ────────────────────────────────────────────────────── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 11, 18, 0.88);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay.active {
+      display: flex;
+    }
+
+    /* ── Unfolded Trifold ───────────────────────────────────────────── */
+    /*
+     * The unfolded brochure uses perspective + 3D transforms.
+     * Structure:
+     *   .brochure-scene  (perspective container)
+     *     .brochure       (preserve-3d, holds three panel groups)
+     *       .panel-group.left    (rotates on left hinge)
+     *       .panel-group.center
+     *       .panel-group.right   (rotates on right hinge)
+     *         .face.front
+     *         .face.back
+     */
+
+    .brochure-scene {
+      perspective: 1800px;
+      perspective-origin: 50% 50%;
+      /* Size = three panels side by side */
+      width: calc(var(--panel-w) * 3);
+      height: var(--panel-h);
+      position: relative;
+      pointer-events: none; /* overlay click still works */
+    }
+
+    .brochure {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      transform-style: preserve-3d;
+      pointer-events: auto;
+    }
+
+    /* ── Panel group ────────────────────────────────────────────────── */
+    .panel-group {
+      width: var(--panel-w);
+      height: var(--panel-h);
+      position: relative;
+      transform-style: preserve-3d;
+      flex-shrink: 0;
+    }
+
+    /* Left panel: hinge is its RIGHT edge (it swings outward to the left) */
+    .panel-group.left {
+      transform-origin: right center;
+      /* start folded: rotated ~180deg around right edge = folded on top of center */
+      transform: rotateY(180deg);
+      transition: transform 0.55s var(--fold-ease);
+    }
+
+    /* Right panel: hinge is its LEFT edge (swings outward to the right) */
+    .panel-group.right {
+      transform-origin: left center;
+      /* start folded: rotated ~-180deg around left edge = folded under center */
+      transform: rotateY(-180deg);
+      transition: transform 0.55s var(--fold-ease) 0.1s;
+    }
+
+    /* Center panel: stays flat, no transform */
+    .panel-group.center {
+      transition: none;
+    }
+
+    /* When open, panels lay flat */
+    .brochure.open .panel-group.left {
+      transform: rotateY(0deg);
+      transition: transform 0.55s var(--fold-ease) 0.05s;
+    }
+
+    .brochure.open .panel-group.right {
+      transform: rotateY(0deg);
+      transition: transform 0.55s var(--fold-ease) 0.18s;
+    }
+
+    /* ── Face (front / back) ────────────────────────────────────────── */
+    .face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 0;
+      overflow: hidden;
+    }
+
+    .face.back {
+      transform: rotateY(180deg);
+    }
+
+    /* Panel borders between panels */
+    .panel-group.center .face { border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+    .panel-group.left   .face.front { border-right: 1px solid var(--border); }
+    .panel-group.right  .face.front { border-left: 1px solid var(--border); }
+
+    /* Fold shadow overlay on each panel face */
+    .face::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to right,
+        rgba(0,0,0,0.18) 0%,
+        transparent 20%,
+        transparent 80%,
+        rgba(0,0,0,0.18) 100%
+      );
+      pointer-events: none;
+      z-index: 5;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+    }
+
+    .brochure.open .face::after {
+      opacity: 0.3;
+    }
+
+    /* ── Inside panel content ───────────────────────────────────────── */
+    .panel-content {
+      height: 100%;
+      overflow-y: auto;
+      padding: 28px 24px;
+      background: var(--surface);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      /* custom scrollbar */
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .panel-content::-webkit-scrollbar { width: 4px; }
+    .panel-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .panel-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      opacity: 0.8;
+    }
+
+    .panel-content h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1.3;
+      color: #fff;
+    }
+
+    .panel-content h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #fff;
+      margin-top: 8px;
+    }
+
+    .panel-content p {
+      font-size: 0.82rem;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .panel-content ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .panel-content ul li {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.5;
+      padding-left: 16px;
+      position: relative;
+    }
+
+    .panel-content ul li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-size: 0.7rem;
+    }
+
+    .panel-img {
+      width: 100%;
+      border-radius: 8px;
+      display: block;
+      object-fit: cover;
+      aspect-ratio: 16/9;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      font-size: 0.68rem;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .btn-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .btn {
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      transition: opacity 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn:hover { opacity: 0.85; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #8b85ff);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 10px;
+      font-size: 0.78rem;
+    }
+
+    .timeline-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: 5px;
+    }
+
+    .timeline-item .tl-text strong {
+      display: block;
+      color: #fff;
+      font-weight: 500;
+      font-size: 0.8rem;
+    }
+
+    .timeline-item .tl-text span {
+      color: var(--muted);
+    }
+
+    /* ── Outside panel (back faces when open, front when closed in stack) */
+    .outside-content {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(160deg, #1e2130, #13151f);
+      padding: 24px;
+      text-align: center;
+      gap: 12px;
+    }
+
+    .outside-content .outside-monogram {
+      font-size: 3rem;
+      opacity: 0.08;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .outside-content p {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ── Divider ────────────────────────────────────────────────────── */
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    /* ── Close hint ─────────────────────────────────────────────────── */
+    .close-hint {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.5px;
+      pointer-events: none;
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 0.4s ease 0.6s;
+    }
+
+    .overlay.active ~ .close-hint,
+    .close-hint.visible {
+      opacity: 1;
+    }
+
+    /* ── Responsive ─────────────────────────────────────────────────── */
+    @media (max-width: 1050px) {
+      :root {
+        --panel-w: 280px;
+        --panel-h: 440px;
+      }
+    }
+
+    @media (max-width: 900px) {
+      :root {
+        --panel-w: 240px;
+        --panel-h: 400px;
+      }
+    }
+
+    @media (max-width: 760px) {
+      :root {
+        --panel-w: 200px;
+        --panel-h: 360px;
+        --card-w:  220px;
+        --card-h:  320px;
+      }
+
+      .brochure-scene {
+        transform: scale(0.85);
+        transform-origin: center center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ────────────────────────────────────────────────────── -->
+  <header class="site-header">
+    <h1>Jordan Wraith</h1>
+    <p>Full-Stack Engineer &amp; Designer &mdash; click any project to unfold it</p>
+  </header>
+
+  <!-- ── Portfolio Grid ────────────────────────────────────────────── -->
+  <main class="portfolio-grid" id="portfolio-grid">
+    <!-- Cards are injected by JS -->
+  </main>
+
+  <!-- ── Overlay ───────────────────────────────────────────────────── -->
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Project details">
+    <!-- Unfolded brochure injected here by JS -->
+  </div>
+
+  <p class="close-hint" id="close-hint">Click outside to close</p>
+
+  <script>
+    /* ================================================================
+       DATA — project definitions
+       ================================================================ */
+    const projects = [
+      {
+        id: 'lumina',
+        category: 'Web App',
+        title: 'Lumina Dashboard',
+        tagline: 'Real-time analytics platform for e-commerce brands.',
+        coverImg: 'https://picsum.photos/seed/lumina/520/340',
+        accentColor: '#6c63ff',
+        insideLeft: {
+          heading: 'Project Overview',
+          body: `Lumina Dashboard gives e-commerce teams a single source of truth for revenue, customer behaviour, and inventory across every sales channel. Built over six months with a four-person team, it ingests millions of events per day and surfaces them in sub-second queries.`,
+          timeline: [
+            { label: 'Discovery & Research', date: 'Jan 2024' },
+            { label: 'MVP Launch',            date: 'Apr 2024' },
+            { label: 'Public Release',        date: 'Jul 2024' },
+          ],
+        },
+        insideCenter: {
+          heading: 'Key Features',
+          img: 'https://picsum.photos/seed/luminacenter/640/360',
+          features: [
+            'Real-time event streaming via WebSocket',
+            'Custom drag-and-drop widget canvas',
+            'AI-powered sales forecasting (±3% accuracy)',
+            'Multi-channel attribution modelling',
+            'Role-based access control & SSO',
+          ],
+        },
+        insideRight: {
+          heading: 'Tech Stack',
+          img: 'https://picsum.photos/seed/luminaright/640/360',
+          stack: ['React 18', 'TypeScript', 'Node.js', 'PostgreSQL', 'Redis', 'Kafka', 'AWS ECS'],
+          links: [
+            { label: 'Live Demo →', href: '#', primary: true },
+            { label: 'View on GitHub', href: '#', primary: false },
+          ],
+        },
+      },
+      {
+        id: 'verdant',
+        category: 'Mobile App',
+        title: 'Verdant',
+        tagline: 'AI-powered plant care companion for the modern gardener.',
+        coverImg: 'https://picsum.photos/seed/verdant/520/340',
+        accentColor: '#34d399',
+        insideLeft: {
+          heading: 'Project Overview',
+          body: `Verdant uses computer vision and a large plant taxonomy database to identify over 40,000 species from a photo, then builds a personalised watering and fertilising schedule based on local weather data and pot conditions. Featured in the App Store's "Apps We Love" in March 2024.`,
+          timeline: [
+            { label: 'Concept & Prototyping', date: 'Sep 2023' },
+            { label: 'Beta Program',          date: 'Dec 2023' },
+            { label: 'App Store Launch',      date: 'Feb 2024' },
+          ],
+        },
+        insideCenter: {
+          heading: 'Key Features',
+          img: 'https://picsum.photos/seed/verdantcenter/640/360',
+          features: [
+            'Instant plant ID via on-device ML model',
+            'Adaptive care schedules from weather APIs',
+            'Community Q&A with expert botanists',
+            'Push reminders with smart snooze',
+            'Offline mode for full functionality',
+          ],
+        },
+        insideRight: {
+          heading: 'Tech Stack',
+          img: 'https://picsum.photos/seed/verdantright/640/360',
+          stack: ['React Native', 'Expo', 'Python', 'TensorFlow Lite', 'FastAPI', 'PostgreSQL', 'Firebase'],
+          links: [
+            { label: 'App Store →', href: '#', primary: true },
+            { label: 'Case Study', href: '#', primary: false },
+          ],
+        },
+      },
+      {
+        id: 'nexus',
+        category: 'Developer Tool',
+        title: 'Nexus CLI',
+        tagline: 'Supercharged deployment pipeline orchestration in your terminal.',
+        coverImg: 'https://picsum.photos/seed/nexuscli/520/340',
+        accentColor: '#f59e0b',
+        insideLeft: {
+          heading: 'Project Overview',
+          body: `Nexus CLI abstracts multi-cloud infrastructure into a single, intuitive command surface. Engineers describe deployment topologies in plain YAML and Nexus generates Terraform, Helm charts, and CI/CD pipeline configs automatically. Adopted by 200+ engineering teams within the first quarter.`,
+          timeline: [
+            { label: 'Internal Dogfooding', date: 'May 2023' },
+            { label: 'Open-Source Release',  date: 'Aug 2023' },
+            { label: '1k GitHub Stars',      date: 'Nov 2023' },
+          ],
+        },
+        insideCenter: {
+          heading: 'Key Features',
+          img: 'https://picsum.photos/seed/nexuscenter/640/360',
+          features: [
+            'Declarative YAML topology definitions',
+            'Auto-generates Terraform & Helm configs',
+            'Blue/green and canary rollout strategies',
+            'Secrets management via Vault & AWS SSM',
+            'Rich interactive TUI with live logs',
+          ],
+        },
+        insideRight: {
+          heading: 'Tech Stack',
+          img: 'https://picsum.photos/seed/nexusright/640/360',
+          stack: ['Go', 'Cobra CLI', 'Terraform', 'Helm', 'Kubernetes', 'Docker', 'HashiCorp Vault'],
+          links: [
+            { label: 'GitHub →', href: '#', primary: true },
+            { label: 'Documentation', href: '#', primary: false },
+          ],
+        },
+      },
+      {
+        id: 'aurelius',
+        category: 'SaaS Platform',
+        title: 'Aurelius',
+        tagline: 'Collaborative legal document drafting, powered by LLMs.',
+        coverImg: 'https://picsum.photos/seed/aurelius/520/340',
+        accentColor: '#ec4899',
+        insideLeft: {
+          heading: 'Project Overview',
+          body: `Aurelius helps legal teams draft, review, and negotiate contracts up to 70% faster. The platform combines a fine-tuned LLM with clause libraries and a real-time collaborative editor so lawyers can iterate on documents together, with AI suggestions appearing inline — like Copilot for legal work.`,
+          timeline: [
+            { label: 'Stealth Development', date: 'Jun 2023' },
+            { label: 'Private Beta',        date: 'Oct 2023' },
+            { label: 'Series A Raised',     date: 'Mar 2024' },
+          ],
+        },
+        insideCenter: {
+          heading: 'Key Features',
+          img: 'https://picsum.photos/seed/aureliuscenter/640/360',
+          features: [
+            'LLM-powered clause suggestions & redlines',
+            'Real-time collaborative CRDT editor',
+            'Clause library with 10,000+ templates',
+            'e-Signature integration (DocuSign, Adobe)',
+            'SOC 2 Type II compliant data handling',
+          ],
+        },
+        insideRight: {
+          heading: 'Tech Stack',
+          img: 'https://picsum.photos/seed/aureliusright/640/360',
+          stack: ['Next.js', 'TypeScript', 'Yjs (CRDT)', 'Python', 'LangChain', 'OpenAI', 'Supabase'],
+          links: [
+            { label: 'Request Access →', href: '#', primary: true },
+            { label: 'Read the Blog Post', href: '#', primary: false },
+          ],
+        },
+      },
+    ];
+
+    /* ================================================================
+       HELPERS
+       ================================================================ */
+
+    /** Build the small closed card (shown in grid) */
+    function buildCard(project) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'trifold-wrapper';
+      wrapper.dataset.id = project.id;
+      wrapper.setAttribute('role', 'button');
+      wrapper.setAttribute('tabindex', '0');
+      wrapper.setAttribute('aria-label', `Open ${project.title} project details`);
+
+      const face = document.createElement('div');
+      face.className = 'trifold-closed-face';
+
+      const img = document.createElement('img');
+      img.className = 'cover-image';
+      img.src = project.coverImg;
+      img.alt = project.title + ' cover';
+      img.loading = 'lazy';
+
+      const body = document.createElement('div');
+      body.className = 'cover-body';
+
+      const cat = document.createElement('span');
+      cat.className = 'cover-category';
+      cat.style.color = project.accentColor;
+      cat.style.background = project.accentColor + '1a';
+      cat.style.borderColor = project.accentColor + '40';
+      cat.textContent = project.category;
+
+      const title = document.createElement('div');
+      title.className = 'cover-title';
+      title.textContent = project.title;
+
+      const tagline = document.createElement('div');
+      tagline.className = 'cover-tagline';
+      tagline.textContent = project.tagline;
+
+      body.append(cat, title, tagline);
+      face.append(img, body);
+      wrapper.append(face);
+
+      wrapper.addEventListener('click', () => openBrochure(project));
+      wrapper.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openBrochure(project); });
+
+      return wrapper;
+    }
+
+    /** Build the unfolded brochure DOM for the overlay */
+    function buildBrochure(project) {
+      /* ── scene / brochure ── */
+      const scene = document.createElement('div');
+      scene.className = 'brochure-scene';
+
+      const brochure = document.createElement('div');
+      brochure.className = 'brochure';
+      brochure.id = 'open-brochure';
+
+      /* ── LEFT panel ─────────────────────────────────────────────── */
+      const leftGroup = document.createElement('div');
+      leftGroup.className = 'panel-group left';
+
+      // front = inside-left content (revealed when open)
+      const leftFront = document.createElement('div');
+      leftFront.className = 'face front';
+      const leftContent = document.createElement('div');
+      leftContent.className = 'panel-content';
+
+      const lLabel = document.createElement('span');
+      lLabel.className = 'panel-label';
+      lLabel.textContent = 'Overview';
+
+      const lHeading = document.createElement('h2');
+      lHeading.textContent = project.insideLeft.heading;
+
+      const lBody = document.createElement('p');
+      lBody.textContent = project.insideLeft.body;
+
+      const lDiv = document.createElement('div');
+      lDiv.className = 'divider';
+
+      const lTlLabel = document.createElement('h3');
+      lTlLabel.textContent = 'Timeline';
+
+      const tlContainer = document.createElement('div');
+      tlContainer.style.display = 'flex';
+      tlContainer.style.flexDirection = 'column';
+      tlContainer.style.gap = '12px';
+
+      project.insideLeft.timeline.forEach(({ label, date }) => {
+        const item = document.createElement('div');
+        item.className = 'timeline-item';
+        const dot = document.createElement('div');
+        dot.className = 'timeline-dot';
+        const text = document.createElement('div');
+        text.className = 'tl-text';
+        text.innerHTML = `<strong>${label}</strong><span>${date}</span>`;
+        item.append(dot, text);
+        tlContainer.append(item);
+      });
+
+      leftContent.append(lLabel, lHeading, lBody, lDiv, lTlLabel, tlContainer);
+      leftFront.append(leftContent);
+
+      // back = outside (decorative, shown when brochure is closed)
+      const leftBack = document.createElement('div');
+      leftBack.className = 'face back';
+      leftBack.innerHTML = `
+        <div class="outside-content">
+          <div class="outside-monogram">${project.title[0]}</div>
+          <p>${project.category}</p>
+        </div>`;
+
+      leftGroup.append(leftFront, leftBack);
+
+      /* ── CENTER panel ───────────────────────────────────────────── */
+      const centerGroup = document.createElement('div');
+      centerGroup.className = 'panel-group center';
+
+      // Center panel: front = inside (always visible when brochure is open)
+      const centerFront = document.createElement('div');
+      centerFront.className = 'face front';
+      const centerContent = document.createElement('div');
+      centerContent.className = 'panel-content';
+
+      const cLabel = document.createElement('span');
+      cLabel.className = 'panel-label';
+      cLabel.textContent = 'Features';
+
+      const cHeading = document.createElement('h2');
+      cHeading.textContent = project.insideCenter.heading;
+
+      const cImg = document.createElement('img');
+      cImg.className = 'panel-img';
+      cImg.src = project.insideCenter.img;
+      cImg.alt = 'Project screenshot';
+      cImg.loading = 'lazy';
+
+      const cList = document.createElement('ul');
+      project.insideCenter.features.forEach(feat => {
+        const li = document.createElement('li');
+        li.textContent = feat;
+        cList.append(li);
+      });
+
+      centerContent.append(cLabel, cHeading, cImg, cList);
+      centerFront.append(centerContent);
+
+      // Center back = cover (outside face — the front cover when folded)
+      const centerBack = document.createElement('div');
+      centerBack.className = 'face back';
+      const cbImg = document.createElement('img');
+      cbImg.style.cssText = 'width:100%;height:55%;object-fit:cover;display:block;';
+      cbImg.src = project.coverImg;
+      cbImg.alt = project.title;
+      const cbBody = document.createElement('div');
+      cbBody.style.cssText = 'padding:20px;display:flex;flex-direction:column;gap:8px;';
+      cbBody.innerHTML = `
+        <span style="font-size:0.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+          color:${project.accentColor};background:${project.accentColor}1a;border:1px solid ${project.accentColor}40;
+          border-radius:4px;padding:2px 8px;width:fit-content">${project.category}</span>
+        <div style="font-size:1.2rem;font-weight:700;color:#fff">${project.title}</div>
+        <div style="font-size:0.8rem;color:#8b909e;line-height:1.5">${project.tagline}</div>`;
+      centerBack.style.background = 'var(--surface)';
+      centerBack.append(cbImg, cbBody);
+
+      centerGroup.append(centerFront, centerBack);
+
+      /* ── RIGHT panel ────────────────────────────────────────────── */
+      const rightGroup = document.createElement('div');
+      rightGroup.className = 'panel-group right';
+
+      // front = inside-right content
+      const rightFront = document.createElement('div');
+      rightFront.className = 'face front';
+      const rightContent = document.createElement('div');
+      rightContent.className = 'panel-content';
+
+      const rLabel = document.createElement('span');
+      rLabel.className = 'panel-label';
+      rLabel.textContent = 'Tech & Links';
+
+      const rHeading = document.createElement('h2');
+      rHeading.textContent = project.insideRight.heading;
+
+      const rImg = document.createElement('img');
+      rImg.className = 'panel-img';
+      rImg.src = project.insideRight.img;
+      rImg.alt = 'Additional screenshot';
+      rImg.loading = 'lazy';
+
+      const rStackLabel = document.createElement('h3');
+      rStackLabel.textContent = 'Stack';
+
+      const rTags = document.createElement('div');
+      rTags.className = 'tag-row';
+      project.insideRight.stack.forEach(tech => {
+        const t = document.createElement('span');
+        t.className = 'tag';
+        t.textContent = tech;
+        rTags.append(t);
+      });
+
+      const rDiv = document.createElement('div');
+      rDiv.className = 'divider';
+
+      const rBtns = document.createElement('div');
+      rBtns.className = 'btn-row';
+      project.insideRight.links.forEach(link => {
+        const a = document.createElement('a');
+        a.className = 'btn ' + (link.primary ? 'btn-primary' : 'btn-secondary');
+        if (link.primary) a.style.background = `linear-gradient(135deg, ${project.accentColor}, ${project.accentColor}cc)`;
+        a.href = link.href;
+        a.textContent = link.label;
+        a.addEventListener('click', e => e.stopPropagation());
+        rBtns.append(a);
+      });
+
+      rightContent.append(rLabel, rHeading, rImg, rStackLabel, rTags, rDiv, rBtns);
+      rightFront.append(rightContent);
+
+      // back = outside-right decorative
+      const rightBack = document.createElement('div');
+      rightBack.className = 'face back';
+      rightBack.innerHTML = `
+        <div class="outside-content">
+          <div class="outside-monogram">${project.title.split(' ').map(w=>w[0]).join('')}</div>
+          <p>Portfolio 2024</p>
+        </div>`;
+
+      rightGroup.append(rightFront, rightBack);
+
+      brochure.append(leftGroup, centerGroup, rightGroup);
+      scene.append(brochure);
+      return scene;
+    }
+
+    /* ================================================================
+       STATE & INTERACTION
+       ================================================================ */
+    const overlay    = document.getElementById('overlay');
+    const closeHint  = document.getElementById('close-hint');
+    let openProject  = null;
+    let animating    = false;
+
+    function openBrochure(project) {
+      if (animating) return;
+      animating = true;
+      openProject = project;
+
+      // Clear old content
+      overlay.innerHTML = '';
+
+      const scene    = buildBrochure(project);
+      const brochure = scene.querySelector('.brochure');
+      overlay.append(scene);
+
+      // Show overlay (display:flex)
+      overlay.classList.add('active');
+      closeHint.classList.add('visible');
+
+      // Trigger 3D unfold on next frame
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          brochure.classList.add('open');
+          // Longest panel animation is 0.55s + 0.18s delay ≈ 730 ms
+          setTimeout(() => { animating = false; }, 800);
+        });
+      });
+    }
+
+    function closeBrochure() {
+      if (animating || !openProject) return;
+      animating = true;
+
+      const brochure = document.getElementById('open-brochure');
+      if (!brochure) { finishClose(); return; }
+
+      brochure.classList.remove('open');
+
+      // Wait for the fold-back animation to finish
+      setTimeout(() => {
+        finishClose();
+      }, 700);
+    }
+
+    function finishClose() {
+      overlay.classList.remove('active');
+      closeHint.classList.remove('visible');
+      overlay.innerHTML = '';
+      openProject = null;
+      animating = false;
+    }
+
+    // Click on overlay (outside brochure) to close
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeBrochure();
+    });
+
+    // Keyboard: Escape to close
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeBrochure();
+    });
+
+    /* ================================================================
+       INIT — render cards
+       ================================================================ */
+    const grid = document.getElementById('portfolio-grid');
+    projects.forEach(project => grid.append(buildCard(project)));
+  </script>
+</body>
+</html>
