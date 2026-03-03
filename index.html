@@ -972,26 +972,23 @@
     let animating    = false;
     let activeCard   = null;
 
+    /** Compute translate + scale to position the brochure over a card */
+    function getFlyTransform(cardEl) {
+      const r = cardEl.getBoundingClientRect();
+      const dx = r.left + r.width / 2 - window.innerWidth / 2;
+      const dy = r.top  + r.height / 2 - window.innerHeight / 2;
+      const isSmall = window.matchMedia('(max-width: 760px)').matches;
+      const sceneScale = isSmall ? 0.85 : 1;
+      const panelW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--panel-w'));
+      const scale = r.width / (panelW * sceneScale);
+      return `translate(${dx}px, ${dy}px) scale(${scale})`;
+    }
+
     function openBrochure(project, cardWrapper) {
       if (animating) return;
       animating = true;
       openProject = project;
       activeCard = cardWrapper;
-
-      // Get card position before hiding
-      const cardRect = cardWrapper.getBoundingClientRect();
-      const cardCenterX = cardRect.left + cardRect.width / 2;
-      const cardCenterY = cardRect.top + cardRect.height / 2;
-      const viewCenterX = window.innerWidth / 2;
-      const viewCenterY = window.innerHeight / 2;
-      const dx = cardCenterX - viewCenterX;
-      const dy = cardCenterY - viewCenterY;
-
-      // Account for responsive scene scale on small viewports
-      const isSmall = window.matchMedia('(max-width: 760px)').matches;
-      const sceneScale = isSmall ? 0.85 : 1;
-      const panelW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--panel-w'));
-      const scale = cardRect.width / (panelW * sceneScale);
 
       // Hide original card (preserve layout space in grid)
       cardWrapper.style.visibility = 'hidden';
@@ -1010,24 +1007,25 @@
 
       // Position at card location (no transition yet)
       flyWrapper.style.transition = 'none';
-      flyWrapper.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+      flyWrapper.style.transform = getFlyTransform(cardWrapper);
 
       // Show overlay
       overlay.classList.add('active');
       closeHint.classList.add('visible');
 
+      // Force reflow so browser registers the initial transform
+      flyWrapper.offsetHeight;
+
       // Animate to center, then unfold
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          flyWrapper.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-          flyWrapper.style.transform = 'none';
+        flyWrapper.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+        flyWrapper.style.transform = 'none';
 
-          // After fly-in completes, unfold
-          setTimeout(() => {
-            brochure.classList.add('open');
-            setTimeout(() => { animating = false; }, 800);
-          }, 500);
-        });
+        // After fly-in completes, unfold
+        setTimeout(() => {
+          brochure.classList.add('open');
+          setTimeout(() => { animating = false; }, 800);
+        }, 500);
       });
     }
 
@@ -1045,21 +1043,8 @@
       setTimeout(() => {
         const flyWrapper = overlay.querySelector('.fly-wrapper');
         if (flyWrapper && activeCard) {
-          const cardRect = activeCard.getBoundingClientRect();
-          const cardCenterX = cardRect.left + cardRect.width / 2;
-          const cardCenterY = cardRect.top + cardRect.height / 2;
-          const viewCenterX = window.innerWidth / 2;
-          const viewCenterY = window.innerHeight / 2;
-          const dx = cardCenterX - viewCenterX;
-          const dy = cardCenterY - viewCenterY;
-
-          const isSmall = window.matchMedia('(max-width: 760px)').matches;
-          const sceneScale = isSmall ? 0.85 : 1;
-          const panelW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--panel-w'));
-          const scale = cardRect.width / (panelW * sceneScale);
-
           flyWrapper.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-          flyWrapper.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+          flyWrapper.style.transform = getFlyTransform(activeCard);
 
           // After fly-back completes, finish
           setTimeout(() => { finishClose(); }, 500);
